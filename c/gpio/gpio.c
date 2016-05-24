@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include<signal.h> // Handle unix signals
 
 // Allow memory mapping to file
 #include <fcntl.h>
@@ -23,6 +24,14 @@ int sencePin=8; // get this from config file.
 long int sleepTime=0;
 char * pipeFile;
 
+pthread_t thr; // Define the thread id holder
+
+void sigIntHandler(int signo){
+    printf("received signal SIGTERM (%i)\n",signo);
+    printf("Terminating ...\n");
+    pthread_cancel(thr);
+    exit (0);
+}
 
 void *senceMovement(void *arg){
   int result=0;
@@ -34,7 +43,7 @@ void *senceMovement(void *arg){
   FILE *testOpen;  
     
   wiringPiSetup();
-  printf("The pin that we are using is: %u",sencePin);
+  printf("The pin that we are using is: %u\n",sencePin);
   pinMode (sencePin,INPUT);
 
   for (;;){
@@ -77,9 +86,6 @@ int main (int argc, char **argv){
   char *tvalue = NULL;
    // a - analogue pin, c - character from the argument, d - digital pin
   int index;
-  //int c;
-
-  pthread_t thr; // Define the thread id holder
   
   opterr = 0;
   while ((c = getopt (argc, argv, "a,d,f:,p:,t:")) != -1){
@@ -121,7 +127,6 @@ int main (int argc, char **argv){
     }
   }
   
-  
   for (index = optind; index < argc; index++){
     printf ("Unknown option:  %s\n", argv[index]);
     help(1);;
@@ -138,7 +143,6 @@ int main (int argc, char **argv){
     return 1;
   }
   
-
   if (! fvalue || ! pvalue || ! tvalue ) help(1);
   if (1 == sscanf(tvalue,"%ld",&sleepTime)){
     printf("Succesfully converted number %ld\n",sleepTime);
@@ -158,11 +162,15 @@ int main (int argc, char **argv){
 
   printf("Dispatching agent to listen to our device ...\n");
 
-  pthread_create(&thr, NULL, senceMovement, NULL);
-  pthread_join(thr, NULL);
-  //delay (60000);
-  //pthread_cancel(thr);
-  printf("The agent has finished.\n");  
+  while (1){
+    pthread_create(&thr, NULL, senceMovement, NULL);
+
+    if (signal(SIGTERM,sigIntHandler) == SIG_ERR)
+      printf("\ncan't catch SIGTERM . The error no. was: %i\n",SIG_ERR);  
+  
+    pthread_join(thr, NULL);
+    printf("The agent has terminated. Restarting it !\n");
+  }
   return 0;
 }
 
