@@ -5,15 +5,17 @@ use feature 'say';
 use IPC::System::Simple 'systemx';
 use Config::IniFiles;
 use Data::Dumper;
+use File::Basename;
 
 my $gpioDaemon="/data/c/gpio/gpio";
-my $configFile="/home/iliyan/Desktop/site/iot/raspberryPi/lz/scripts/services/lz-gpio.conf";
+my $configFile="../../config/sensor-gpio.conf";
 
 say "lz gpio version 0.1 - parsing the config file: $configFile";
 
 my %processInfo=();
 my %cfg;
 my %duplicate; # Hash for check for duplicate fifos and id's ...
+$configFile=dirname($0) .'/' . $configFile;
 
 #TODO: Check for parsing errors !!!
 tie %cfg, 'Config::IniFiles', ( -file => $configFile);
@@ -33,9 +35,8 @@ foreach (sort keys (%cfg)){
                 next;
             }
         }
-        
         if ($found == 0){
-            say "$configKey <===This key was not defined in our module ! It is either misspelled, or not supported !";
+            say "$configKey <===This key is unknown! It is either misspelled, or not supported !";
             exit 1;
         }
     }
@@ -45,22 +46,22 @@ foreach (sort keys (%cfg)){
     push @command,$gpioDaemon;
     push @command,'-p';
     push @command,$_;
-    
+
     print  "Checking id:$cfg{$_}{id} ...";
     my $id=$cfg{$_}{id};
     unless ($id=~m/^[a-zA-Z0-9]{10}$/) {
         say "Incorrect ID ! Must be 10 characters long and may include one or more of the following: a-zA-Z0-9";
         exit 1;
     }
-        
+
     if (exists $duplicate{$id}){
         say "Duplicate ID detected. The same ID was located in section: $duplicate{$id}{section}";
         exit 1;
     }
     $duplicate{$id}{section}=$_;
-    
+
     say "OK !";
-    
+
     print "Checking pin type ...";
     my $d=$cfg{$_}{type};
     if ($d=~m/^digital$/i) {
