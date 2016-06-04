@@ -7,15 +7,20 @@ use Device::SerialPort qw( :PARAM :STAT 0.07 );
 use Data::Dumper;
 use Time::HiRes 'usleep';
 use Config::IniFiles;
+use File::Basename;
+
 $|++;
 
-my $configFile="/home/iliyan/Desktop/site/iot/raspberryPi/lz/scripts/services/lz-ard.conf";
+my $configFile="../../config/sensor-ard.conf";
+
 # Parse the config file here !!!
 say "lz ardu version 0.1 - parsing the config file: $configFile";
 
 my %cfg;
 my @validConf=();
 my %duplicate; # Hash for check for duplicate fifos and id's ...
+
+$configFile=dirname($0) .'/' . $configFile;
 
 #TODO: Check for parsing errors !!!
 tie %cfg, 'Config::IniFiles', ( -file => $configFile);
@@ -36,7 +41,7 @@ foreach (sort keys (%cfg)){
             }
         }
         if ($found == 0){
-            say "$configKey <===This key was not defined in our module ! It is either misspelled, or not supported !";
+            say "$configKey <===This key is unknown ! It is either misspelled, or not supported !";
             exit 1;
         }
     }
