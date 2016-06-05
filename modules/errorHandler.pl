@@ -22,7 +22,7 @@ sub getConfigValue{
 		
 		# Check if the 'new' method is invoked.		
 		unless (exists $$self{init}){
-			$self->setLastError="This module is not initialized. Please use 'new' method to do so.";
+			$self->setLastError("This module is not initialized. Please use 'new' method to do so.");
 			return undef;
 		}
 		
