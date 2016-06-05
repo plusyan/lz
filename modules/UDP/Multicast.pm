@@ -67,7 +67,7 @@ sub send{
     $s->mcast_send($message,"$$self{mcastGroup}:$$self{port}");
 }
 
-receive{
+sub receive{
     say "UNDER CONSTRUCTION ...";
     return undef;
 }

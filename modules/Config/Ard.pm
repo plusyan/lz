@@ -1,42 +1,41 @@
-#!/usr/bin/env perl
-
-BEGIN {
-    pop @INC;
-    push @INC,"/opt/lz/modules";
-}
+package Config::Ard;
 
 use strict;
 use warnings;
 use feature 'say';
-use Device::SerialPort qw( :PARAM :STAT 0.07 );
-use Data::Dumper;
-use Time::HiRes 'usleep';
 use Config::IniFiles;
-use File::Basename;
-use UDP::Multicast;
-use Config::Ard;
+require "/opt/lz/modules/errorHandler.pl";
+
+sub new{
+    my %config=();
+    my ($self,$configFile)=@_;
+    unless (defined $configFile){
+        $self->setLastError("Need configuration file to proceed !");
+        return undef;
+    }
+    $config{file}=$configFile;
+    return bless \%config;
+}
+
+sub parse{
+    my $self=shift;
+    my $configFile=$self->getValue('file');
+    unless (defined $configFile){
+        $self->getLastError("No configuration file defined. Is this module initialized via new method ?");
+        return undef;
+    }
+    $self->setLastError("Under Construction.");
+    return undef;
+    
+}
 
 
 
-$|++;
 
-my $configFile="../../config/sensor-ard.conf";
+1;
 
-# Parse the config file here !!!
-say "lz ardu version 0.1 - parsing the config file: $configFile";
 
-my %cfg;
-my @validConf=();
-my %duplicate; # Hash for check for duplicate fifos and id's ...
-
-$configFile=dirname($0) .'/' . $configFile;
-
-my $cfg=Config::Ard->new($configFile);
-$cfg or die "Failed to parse config file: $configFile. The error was:\n" . $cfg->getLastError;
-my $result=$cfg->parse();
-
-exit 7;
-
+__DATA__
 #TODO: Check for parsing errors !!!
 tie %cfg, 'Config::IniFiles', ( -file => $configFile);
 
@@ -137,36 +136,5 @@ foreach (sort keys (%cfg)){
     
 }
 
-say "Configuration file: $configFile is now valid. Starting background processes ...";
 
 
-say "How to start the the listener processes ?";
-foreach my $ard (@validConf){
-    say "Serial port reader:";
-    my $serial = Device::SerialPort->new($cfg{$ard}{port}, 0) || die "Can't open $cfg{$ard}{port}: $!\n";
-
-    $serial->baudrate($cfg{$ard}{baudRate}) || die "Cannot set speed to $cfg{$ard}{baudRate} !";
-
-    my $string;
-    
-    
-    while (1) {
-        my ($count,$buffer)=$serial->read($cfg{$ard}{buffer});
-        $string .=$buffer;
-        # Check if the string is completed by the EOL symbols, be it 0d, 0a, or both !
-        if ($string=~m/[\n\r]/) {
-            unless (open (P,">","$cfg{$ard}{pipeFile}")){
-                say "Failed to open FIFO: $cfg{$ard}{pipeFile} $!";
-                exit 1;
-            }
-            print P $string;
-            close (P) or
-                warn "Failed to close FIFO: $cfg{$ard}{pipeFile} . $!";          
-             
-            say "Just wrote to pipe ...";
-            $string="";
-        }
-        usleep 100; # get this from config file (maybe)
-    }
- 
-}
