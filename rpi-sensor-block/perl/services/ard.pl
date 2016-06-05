@@ -63,15 +63,14 @@ foreach my $ard (sort keys %cfg){
             $string .=$buffer;
             # Check if the string is completed by the EOL symbols, be it 0d, 0a, or both ! If so, send it via the pipe.
             if ($string=~m/[\n\r]/) {
+                $string=~s|\n\r|\n|g;
                 unless (open (P,">","$cfg{$ard}{pipeFile}")){
                     say "Failed to open FIFO: $cfg{$ard}{pipeFile} $!";
                     exit 1;
                 }
                 print P $string;
                 close (P) or
-                    warn "Failed to close FIFO: $cfg{$ard}{pipeFile} . $!";          
-                 
-                say "Just wrote to pipe ...";
+                    warn "Failed to close FIFO: $cfg{$ard}{pipeFile} . $!";
                 $string="";
             }
             usleep 100; # get this from config file (maybe)
