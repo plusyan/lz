@@ -7,7 +7,7 @@ use Config::IniFiles;
 use Data::Dumper;
 use File::Basename;
 
-my $gpioDaemon="/data/c/gpio/gpio";
+my $gpioDaemon="/opt/lz/rpi-sensor-block/c/gpio/gpio";
 my $configFile="../../config/sensor-gpio.conf";
 
 say "lz gpio version 0.1 - parsing the config file: $configFile";
@@ -36,7 +36,7 @@ foreach (sort keys (%cfg)){
             }
         }
         if ($found == 0){
-            say "$configKey <===This key is unknown! It is either misspelled, or not supported !";
+            say "In config file: $configFile, section: $_:\n$configKey <===This key is unknown! It is either misspelled, or not supported !";
             exit 1;
         }
     }

@@ -49,7 +49,14 @@ void *senceMovement(void *arg){
   for (;;){
     if (d == 1) result=digitalRead(sencePin);
     if (a == 1) result=analogRead(sencePin);
-    sprintf( ascii_result,"/d:%u:%u/",sencePin,result);
+    
+    // At this point we know the following things: 
+    // 1. The number of the pin at which the sensor is attached
+    // 2. The type of the pin: digital or analog
+    // 3. The value that we just received.
+    // Everything else will be added later !
+    
+    sprintf( ascii_result,"/d:%u:%u/",sencePin,result); 
 
     if (pipe = open(pipeFile, O_WRONLY) == -1){
       perror("Failed to open the pipe");
@@ -58,7 +65,6 @@ void *senceMovement(void *arg){
 
     if (write(pipe, ascii_result,sizeof(ascii_result)) == -1)
       perror("Failed to write to pipe");
-
     close (pipe);
     delay (sleepTime);
   }

@@ -3,7 +3,6 @@
 BEGIN {
     pop @INC;
     push @INC,"/opt/lz/modules";
-    
 }
 
 
