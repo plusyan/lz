@@ -1,0 +1,26 @@
+# interfaces(5) file used by ifup(8) and ifdown(8)
+# Include files from /etc/network/interfaces.d:
+source-directory /etc/network/interfaces.d
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug eth0
+iface eth0 inet dhcp
+
+allow-hotplug eth1
+iface eth1 inet dhcp
+
+# This is the default ip configuration for the bussInternet devices.
+auto wlan0
+allow-hotplug wlan0
+
+iface wlan0 inet static
+address 10.10.10.1
+netmask 255.255.255.0
+network 10.10.10.0
+broadcast 10.10.10.255
+dns-nameservers 8.8.8.8
+wireless-power off
