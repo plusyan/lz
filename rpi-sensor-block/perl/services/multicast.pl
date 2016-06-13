@@ -28,7 +28,7 @@ foreach (readdir(FDIR)){
         say "Forked to transmit the contents of $fifo ...";
         my $s=UDP::Multicast->new("wlan0","225.0.1.1","65432") or  # Where from to take this ???
             die "Failed to initiate: UDP::Multicast . The error was: " . UDP::Multicast->getLastError;
-        while  ! (open(PIPE,"$fifo")){
+        while ( ! (open(PIPE,"$fifo"))){
             warn "Failed to open fife: $fifo ($!). Sleeping 5 minutes and repeating ...";
             sleep 300;
         }
