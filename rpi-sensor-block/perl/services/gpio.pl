@@ -12,6 +12,16 @@ my $configFile="../../config/sensor-gpio.conf";
 
 say "lz gpio version 0.1 - parsing the config file: $configFile";
 
+my @pids;
+sub terminate {
+    foreach (@pids){
+        say "$$: Terminating process: $_";
+        kill (15,$_);
+    }
+    say "$$: Exiting";
+    exit 0;
+}
+
 my %processInfo=();
 my %cfg;
 my %duplicate; # Hash for check for duplicate fifos and id's ...
@@ -134,28 +144,22 @@ foreach (sort keys (%cfg)){
     }
 }
 
-# Capture all signals here and terminate all processes before exit !
+$SIG{INT}=\&terminate;
+$SIG{TERM}=\&terminate;
 
-
-my %procTable=();
 foreach (@commands){
-    say "@$_";
     my $pid = fork();
     die "Could not fork\n" if not defined $pid;
     
     if ($pid == 0){
-        eval {systemx(@$_);};
-        if ($@){
-            say "Fatal error occured while executing the following command: @$_ : \n $@";
-            return;
-        }
+        # The gpio.c is self preserving process. We do not need to restart or monitor it !
+        say "$$: Executing: @$_ ";
+        exec(@$_);
     }else{
-        $procTable{$pid}=$_;
+        push @pids,$pid;
     }
 }
 
-__DATA__
+sleep 100 while 1;
 
-say "Exec: $gpioDaemon -d -f /data/tmp/sensor_ir -p 0 -t 500";
-exec ("$gpioDaemon -d -f /data/tmp/sensor_ir -p  0 -t 500 &");
-
+__END__
