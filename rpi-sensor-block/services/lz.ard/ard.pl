@@ -16,6 +16,21 @@ use File::Basename;
 use Config::Ard;
 use IO::File;
 
+my @pids=();
+
+sub terminate {
+    say "$$: Received signal: " . shift;
+    if ($#pids == -1){ 
+        say "$$: Exiting.";
+        exit 0; 
+    }; 
+    
+    foreach (@pids){
+        say "Killing child process: $_ ...";
+        kill (15,$_) or warn "Failed to kill process: $_. The error was: $!";
+    }
+    exit 0;
+}
 
 $|++;
 
@@ -55,9 +70,10 @@ foreach (sort keys %cfg){
     say "OK";    
 }
 
-my @pids=();
-foreach my $ard (sort keys %cfg){
-    
+$SIG{INT}=\&terminate;
+$SIG{TERM}=\&terminate;
+
+foreach my $ard (sort keys %cfg){    
     my $pid=fork();
     if ($pid == 0 ) {
         $|=1;
@@ -74,9 +90,7 @@ foreach my $ard (sort keys %cfg){
             exit 1;
         }
         
-        while (1){
-            
-            
+        while (1){            
             $|=1;
             # Create the header part
             my ($count,$buffer)=$serial->read($cfg{$ard}{buffer});
@@ -103,4 +117,6 @@ foreach my $ard (sort keys %cfg){
         say "Failed to fork child for port: $cfg{$ard}{port}\nReason:perl fork is not working !";
         exit 1;
     }
+    
+    sleep 100 while (1);    
 }
