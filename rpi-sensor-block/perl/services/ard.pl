@@ -4,7 +4,7 @@ BEGIN {
     pop @INC;
     push @INC,"/opt/lz/modules";
 }
-
+ 
 use strict;
 use warnings;
 use feature 'say';
@@ -16,7 +16,6 @@ use File::Basename;
 use Config::Ard;
 use IO::File;
 use String::CRC32;
-
  
 my @pids=();
 
@@ -104,7 +103,7 @@ foreach my $ard (sort keys %cfg){
                 $seq++;
                 $string="v-f=0.1 id-s=$cfg{$ard}{id} seq-n=$seq|" . $string; # have the version predefined
                 
-                $string="crc32-hex=" . crc32($string) . " " . $string;
+                $string="crc32-n=" . crc32($string) . " newseq-rxn=0 " . $string;
                 
                 say $pipe $string;
                 $string="";
