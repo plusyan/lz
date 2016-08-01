@@ -11,6 +11,10 @@ use feature 'say';
 use UDP::Multicast;
 use Data::Dumper;
 use IO::File;
+use Crypt::Cipher::AES;
+
+say "Sleeping 60 seconds to allow all drivers to start ...";
+sleep 60;
 
 my $fifoPath="/data/tmp"; # Take this from somewhere ...
 
