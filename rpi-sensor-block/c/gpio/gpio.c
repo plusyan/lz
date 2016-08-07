@@ -1,5 +1,3 @@
-// red one main executable and library
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,7 +36,6 @@ void *senceMovement(void *arg){
   int pipe;
   // Initialize the data, and connect it to file.
   int fd, pagesize;
-  // 
   char ascii_result[]="                \n";
   FILE *testOpen;  
 
@@ -55,6 +52,7 @@ void *senceMovement(void *arg){
     // 2. The type of the pin: digital or analog
     // 3. The value that we just received.
     // Everything else will be added later !
+    // TODO: Add everything here !!!
     
     sprintf( ascii_result,"/d:%u:%u/",sencePin,result); 
 
@@ -73,7 +71,7 @@ void *senceMovement(void *arg){
 
 int help ( int code){
     if (! code) code=0;
-    printf("\n\nlzlz version %f !!!\n",VERSION);
+    printf("\n\nlz version %f !!!\n",VERSION);
     printf("Usage: gpio  -a | -d parameter parameter ...\n");
     printf("\n\n");
     printf("This program is free software. Use it at your own risk !\n");
@@ -95,12 +93,10 @@ int main (int argc, char **argv){
   while ((c = getopt (argc, argv, "a,d,f:,p:,t:")) != -1){
     switch (c){
       case 'a' :
-        printf("d is ok !\n");
         a=1;
         break;
       case 'd' :
         d=1;
-        printf("d is ok !\n");
         break;
       case 'f':
         fvalue = optarg;
@@ -154,9 +150,7 @@ int main (int argc, char **argv){
     return 1;
   }
 
-  if (1 == sscanf(pvalue,"%d",&sencePin)){
-    printf("Succesfully converted number %d\n",sencePin);
-  }else{
+  if (1 != sscanf(pvalue,"%d",&sencePin)){
     printf("Incorrect value of parameter -t\n");
     return 1;
   }
