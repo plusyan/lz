@@ -33,6 +33,7 @@ void sigIntHandler(int signo){
 
 void *senceMovement(void *arg){
   int result=0;
+  int oldDigVal=5;
   int pipe;
   // Initialize the data, and connect it to file.
   int fd, pagesize;
@@ -53,19 +54,21 @@ void *senceMovement(void *arg){
     // 3. The value that we just received.
     // Everything else will be added later !
     // TODO: Add everything here !!!
-    
-    sprintf( ascii_result,"/d:%u:%u/",sencePin,result); 
-
-    if (pipe = open(pipeFile, O_WRONLY) == -1){
-      perror("Failed to open the pipe");
-      return;
+    if (oldDigVal != result){
+        oldDigVal=result;
+        
+        sprintf( ascii_result,"/d:%u:%u/",sencePin,result); 
+        if (pipe = open(pipeFile, O_WRONLY) == -1){
+            perror("Failed to open the pipe");
+            return;
+        }
+        if (write(pipe, ascii_result,sizeof(ascii_result)) == -1) perror("Failed to write to pipe");
+        close (pipe);
+        delay (sleepTime);
     }
-
-    if (write(pipe, ascii_result,sizeof(ascii_result)) == -1)
-      perror("Failed to write to pipe");
-    close (pipe);
-    delay (sleepTime);
+    oldDigVal=result;
   }
+  
   return 0;
 }
 
@@ -170,3 +173,4 @@ int main (int argc, char **argv){
   }
   return 0;
 }
+
