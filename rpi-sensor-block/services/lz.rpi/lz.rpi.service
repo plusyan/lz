@@ -3,7 +3,7 @@ Description=lz's main rpi sensor reader
 After=network.target auditd.service
 
 [Service]
-ExecStart=/opt/lz/rpi-sensor-block/perl/services/gpio.pl
+ExecStart=/opt/lz/rpi-sensor-block/services/lz.rpi/gpio.pl
 # ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 Restart=on-failure

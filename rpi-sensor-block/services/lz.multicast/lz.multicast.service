@@ -1,0 +1,13 @@
+[Unit]
+Description=lz's main multicast service.
+After=network.target auditd.service lz.ard lz.rpi
+
+[Service]
+ExecStart=/opt/lz/rpi-sensor-block/services/lz.multicast/multicast.pl
+# ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=lz.multicast

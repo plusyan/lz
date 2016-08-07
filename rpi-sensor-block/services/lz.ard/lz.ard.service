@@ -3,7 +3,7 @@ Description=lz's main ard reader.
 After=network.target auditd.service
 
 [Service]
-ExecStart=/opt/lz/rpi-sensor-block/perl/services/ard.pl
+ExecStart=/opt/lz/rpi-sensor-block/services/lz.ard/ard.pl
 # ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 Restart=on-failure
