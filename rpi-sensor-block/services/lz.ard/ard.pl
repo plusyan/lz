@@ -15,7 +15,9 @@ use Config::IniFiles;
 use File::Basename;
 use Config::Ard;
 use IO::File;
+use String::CRC32;
 
+ 
 my @pids=();
 
 sub terminate {
@@ -100,7 +102,10 @@ foreach my $ard (sort keys %cfg){
             if ($string=~m/[\n\r]/){
                 $string=~s|[\n\r]{1,}||g;
                 $seq++;
-                $string="v-f:0.1 id-s:$cfg{$ard}{id} seq-n:$seq|" . $string; # have the version predefined
+                $string="v-f=0.1 id-s=$cfg{$ard}{id} seq-n=$seq|" . $string; # have the version predefined
+                
+                $string="crc32-hex=" . crc32($string) . " " . $string;
+                
                 say $pipe $string;
                 $string="";
             }
