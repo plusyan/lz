@@ -12,6 +12,8 @@
 
 int idDHT11pin = 2; //Digital pin for comunications
 int idDHT11intNumber = 0; //interrupt number (must be the one that use the previus defined pin (see table above)
+float prevTempC=0;
+float prevHum=0;
 
 //declaration
 void dht11_wrapper(); // must be declared before the lib initialization
@@ -62,30 +64,35 @@ void loop()
     Serial.println("error-txt=unknown_error"); 
     break;
   }
+  if ( prevTempC != DHT11.getCelsius() || prevHum != DHT11.getHumidity()){
+    prevTempC=DHT11.getCelsius();
+    prevHum=DHT11.getHumidity();
+    
+    Serial.print("chipid-text=iteaduino");
+    Serial.print(" nextseq=onchange");
+    
+    Serial.print(" pin-d=");
+    Serial.print(idDHT11pin);
   
-  Serial.print("chipid-text=iteaduino");
-  Serial.print(" pin-d=");
-  Serial.print(idDHT11pin);
-  
-  Serial.print(" hum-%=");
-  Serial.print(DHT11.getHumidity(), 2);
+    Serial.print(" hum-%=");
+    Serial.print(DHT11.getHumidity(), 2);
 
-  Serial.print(" temp-C=");
-  Serial.print(DHT11.getCelsius(), 2);
+    Serial.print(" temp-C=");
+    Serial.print(DHT11.getCelsius(), 2);
 
-  Serial.print(" temp-F=");
-  Serial.print(DHT11.getFahrenheit(), 2);
+    Serial.print(" temp-F=");
+    Serial.print(DHT11.getFahrenheit(), 2);
 
-  Serial.print(" temp-K=");
-  Serial.print(DHT11.getKelvin(), 2);
+    Serial.print(" temp-K=");
+    Serial.print(DHT11.getKelvin(), 2);
 
-  Serial.print(" text=");
-  Serial.print("DewPoint(oC)=");
-  Serial.print(DHT11.getDewPoint());
+    Serial.print(" text=");
+    Serial.print("DewPoint(oC)=");
+    Serial.print(DHT11.getDewPoint());
 
-  Serial.print("DewPointSlow(oC)=");
-  Serial.println(DHT11.getDewPointSlow());
-
+    Serial.print("DewPointSlow(oC)=");
+    Serial.println(DHT11.getDewPointSlow());
+  }
   delay(2000);
 }
 
