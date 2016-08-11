@@ -1,13 +1,14 @@
+
 #!/usr/bin/env perl
 use strict;
 use warnings;
 use feature 'say';
 
-my $rPi="10.10.10.1";
+my $rPi="192.168.1.10";
 
 say "Connecting to your raspberry pi ($rPi)";
 
-system("sshfs pi\@10.10.10.1:/ /data/mount/rpi");
+system("sshfs pi\@$rPi:/ /data/mount/rpi");
 
 
 
