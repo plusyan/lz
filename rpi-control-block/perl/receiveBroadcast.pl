@@ -4,6 +4,8 @@ use warnings;
 use feature 'say';
 use IO::Socket::Multicast;
 use Data::Dumper;
+use Sensor::Signal;
+
 my $data="";
 #TODO: Check if we are allready running !
 my $s = IO::Socket::Multicast->new(LocalPort=>65432);
