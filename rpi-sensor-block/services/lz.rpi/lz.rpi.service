@@ -1,8 +1,8 @@
 [Unit]
 Description=lz's main rpi sensor reader
-After=network.target auditd.service
+After=network.target auditd.service lz.multicast.service
 
-[Service]
+[Service] 
 ExecStart=/opt/lz/rpi-sensor-block/services/lz.rpi/gpio.pl
 # ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process

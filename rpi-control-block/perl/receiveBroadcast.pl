@@ -5,7 +5,7 @@ use feature 'say';
 use IO::Socket::Multicast;
 use Data::Dumper;
 my $data="";
-
+#TODO: Check if we are allready running !
 my $s = IO::Socket::Multicast->new(LocalPort=>65432);
 print Dumper \$s;
 

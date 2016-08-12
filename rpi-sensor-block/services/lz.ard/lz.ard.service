@@ -1,6 +1,6 @@
 [Unit]
 Description=lz's main ard reader.
-After=network.target auditd.service
+After=network.target auditd.service lz.multicast.service
 
 [Service]
 ExecStart=/opt/lz/rpi-sensor-block/services/lz.ard/ard.pl

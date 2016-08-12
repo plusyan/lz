@@ -1,6 +1,6 @@
 [Unit]
 Description=lz's main multicast service.
-After=network.target auditd.service lz.ard lz.rpi
+After=network.target auditd.service 
 
 [Service]
 ExecStart=/opt/lz/rpi-sensor-block/services/lz.multicast/multicast.pl
