@@ -68,7 +68,7 @@ void loop()
     prevTempC=DHT11.getCelsius();
     prevHum=DHT11.getHumidity();
     
-    Serial.print("chipid-text=iteaduino");
+    Serial.print("chipid-text=iteaduino_nano");
     Serial.print(" nextseq=onchange");
     
     Serial.print(" pin-d=");
@@ -87,10 +87,10 @@ void loop()
     Serial.print(DHT11.getKelvin(), 2);
 
     Serial.print(" text=");
-    Serial.print("DewPoint(oC)=");
+    Serial.print("DewPoint(oC):");
     Serial.print(DHT11.getDewPoint());
 
-    Serial.print("DewPointSlow(oC)=");
+    Serial.print("DewPointSlow(oC):");
     Serial.println(DHT11.getDewPointSlow());
   }
   delay(2000);
