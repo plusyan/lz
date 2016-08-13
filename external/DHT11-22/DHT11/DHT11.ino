@@ -90,7 +90,7 @@ void loop()
     Serial.print("DewPoint(oC):");
     Serial.print(DHT11.getDewPoint());
 
-    Serial.print("DewPointSlow(oC):");
+    Serial.print(",DewPointSlow(oC):");
     Serial.println(DHT11.getDewPointSlow());
   }
   delay(2000);
