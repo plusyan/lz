@@ -97,15 +97,17 @@ foreach my $ard (sort keys %cfg){
             $string .=$buffer;
             # Check if the string is completed by the EOL symbols, be it 0d, 0a, or both ! If so, send it via the pipe.
             if ($string=~m/[\n\r]/){
+                
                 $string=~s|[\n\r]{1,}||g;
-        	    $seq++;
+                $seq++;
                 if ($string){
-                    $string="v-f=0.1 id-s=$cfg{$ard}{id} seq-n=$seq|" . $string; # have the version predefined
+                    $string="v-f=0.1 id-s=$cfg{$ard}{id} seq-n=$seq newseq-rxn=0|" . $string; # have the version predefined
                 }else{
                     say "Empty string received from the sensor !";
-                    $string="err-text=noDataFromARDviaUSBport";
+                    $string="v-f=0.1 id-s=$cfg{$ard}{id} seq-n=$seq newseq-rxn=0 err-text=noDataFromARDviaUSBport|";
                 }
-                $string="crc32-n=" . crc32($string) . " newseq-rxn=0 " . $string;
+                
+                $string="crc32-n=" . crc32($string)  ." $string";
                 say $pipe $string;
                 $string="";
             }
