@@ -20,7 +20,5 @@ while (1){
 	say $data;
 	# Decode the data here !
 	my $sensorData=$sensor->decode($data);
-	$sensorData or say $sensor->getLastError();
-	print Dumper \$sensorData;
-	
+	$sensorData or say $sensor->getLastError();	
 }
