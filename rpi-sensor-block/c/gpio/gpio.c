@@ -16,7 +16,7 @@
 
 const float  VERSION=0.1;
 
-int a = 0,c,d = 0;
+int c,d=0,a=0;
 
 int sencePin=8; // get this from config file.
 long int sleepTime=0;
@@ -37,7 +37,7 @@ void *senceMovement(void *arg){
   int pipe;
   // Initialize the data, and connect it to file.
   int fd, pagesize;
-  char ascii_result[]="                \n";
+  char ascii_result[]="                                               \n";
   FILE *testOpen;  
 
   wiringPiSetup();
@@ -46,7 +46,7 @@ void *senceMovement(void *arg){
 
   for (;;){
     if (d == 1) result=digitalRead(sencePin);
-    if (a == 1) result=analogRead(sencePin);
+    if (d == 0) result=analogRead(sencePin);
     
     // At this point we know the following things: 
     // 1. The number of the pin at which the sensor is attached
@@ -57,7 +57,8 @@ void *senceMovement(void *arg){
     if (oldDigVal != result){
         oldDigVal=result;
         
-        sprintf( ascii_result,"/d:%u:%u/",sencePin,result); 
+        sprintf( ascii_result,"pin-n=%u pin-type=%u movement-b=%u",sencePin,d,result);
+        
         if (pipe = open(pipeFile, O_WRONLY) == -1){
             perror("Failed to open the pipe");
             return;
