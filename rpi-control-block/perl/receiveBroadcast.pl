@@ -11,10 +11,8 @@ my $data="";
 #TODO: Check if we are allready running !
 my $s = IO::Socket::Multicast->new(LocalPort=>65432);
 
-
 my $sensor=Sensor::Signal->new;
 
-print Dumper \$sensor;
 while (1){
 	$s->mcast_add('225.0.1.1','wlp3s0');
 	$s->recv($data,65432);
@@ -23,5 +21,6 @@ while (1){
 	# Decode the data here !
 	my $sensorData=$sensor->decode($data);
 	$sensorData or say $sensor->getLastError();
+	print Dumper \$sensorData;
 	
 }
