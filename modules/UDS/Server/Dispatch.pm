@@ -60,17 +60,8 @@ sub server {
                 say "Child $$: Execution completed !";
                 return 0;
             }else{           
-                say "WARNING: failed to fork process in order to execute registered function! ($!)";
-                say "Executing the registered function without fork. This server will be blocked untill the function completes it's execution !";
-                say "NOT IMPLEMENTED !!!";
-                #unless (defined &$function){
-                #    say "The registered function is gone. Terminating.";
-                #    exit 0;
-                #}else{
-                #    &$function($socket,$string);
-                #}
+                say "FATAL: failed to fork process in order to execute the registered function! ($!)";
             }
-        #}
     }
 }
 1;
