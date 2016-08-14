@@ -16,7 +16,8 @@
 
 const float  VERSION=0.1;
 
-int a = 0,c,d = 0;
+int c,d=0,a=0;
+size_t i;
 
 int sencePin=8; // get this from config file.
 long int sleepTime=0;
@@ -33,11 +34,11 @@ void sigIntHandler(int signo){
 
 void *senceMovement(void *arg){
   int result=0;
-  int oldDigVal=5;
+  int oldResult=5;
   int pipe;
   // Initialize the data, and connect it to file.
   int fd, pagesize;
-  char ascii_result[]="                \n";
+  char ascii_result[1024];
   FILE *testOpen;  
 
   wiringPiSetup();
@@ -46,27 +47,38 @@ void *senceMovement(void *arg){
 
   for (;;){
     if (d == 1) result=digitalRead(sencePin);
-    if (a == 1) result=analogRead(sencePin);
+    if (d == 0) result=analogRead(sencePin);    
     
     // At this point we know the following things: 
-    // 1. The number of the pin at which the sensor is attached
-    // 2. The type of the pin: digital or analog
-    // 3. The value that we just received.
-    // Everything else will be added later !
-    // TODO: Add everything here !!!
-    if (oldDigVal != result){
-        oldDigVal=result;
+    // 1. The number of the pin at which the sensor is attached (sencePin)
+    // 2. The type of the pin: digital or analog (d)
+    // 3. The value that we just received (result)
+    
+    if (oldResult != result){
+        oldResult=result;
         
-        sprintf( ascii_result,"/d:%u:%u/",sencePin,result); 
+        if (d == 1)
+            sprintf( ascii_result,"chipid-text=rpi nextseq=onchange pin-n=%u pin-type=d movement-b=%u\n",sencePin,result);
+        if (d == 0)
+            sprintf( ascii_result,"chipid-text=rpi nextseq=onchange pin-n=%u pin-type=a movement-b=%u\n",sencePin,result);
+        
+        // Detect the end of the text (new line)
+        for (i=0; i<=sizeof(ascii_result); i++){
+            if (ascii_result[i] == 0xD || ascii_result[i] == 0xA){
+                i++;
+                break;
+            }
+        }
+
         if (pipe = open(pipeFile, O_WRONLY) == -1){
             perror("Failed to open the pipe");
             return;
         }
-        if (write(pipe, ascii_result,sizeof(ascii_result)) == -1) perror("Failed to write to pipe");
+        if (write(pipe, ascii_result,i) == -1) perror("Failed to write to pipe");
         close (pipe);
-        delay (sleepTime);
+      //  delay (sleepTime);
     }
-    oldDigVal=result;
+    oldResult=result;
   }
   
   return 0;
