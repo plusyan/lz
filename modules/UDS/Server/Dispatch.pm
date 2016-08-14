@@ -49,7 +49,7 @@ sub server {
             if ($pid > 0 ){
                 say "Successfully forked process: $pid to execute the registered function !";
             }elsif ($pid == 0){
-                say "Child: sending string: $string to the registered function !";
+                say "Child $$: sending string: $string to the registered function !";
                 &$function($socket,$string);
                 say "Child $$: Execution completed !";
                 return 0;
