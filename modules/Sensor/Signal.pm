@@ -78,6 +78,10 @@ sub decode{
             return undef;
         }
         
+        if (defined $result{header}{$varVal[0]}){
+            $self->setLastError("In header: $varVal[0] allready exists and have value:[$result{header}{$varVal[0]}]");
+            return undef;
+        }
         $result{header}{$varVal[0]}=$varVal[1];
     }
     
@@ -93,7 +97,10 @@ sub decode{
             $self->setLastError("Data contains too many '=' signs ($#varVal) in string:" . join('=',@varVal));
             return undef;
         }
-        
+        if (defined $result{data}{$varVal[0]}){
+            $self->setLastError("In data: $varVal[0] allready exists and have value:[$result{data}{$varVal[0]}]");
+            return undef;
+        }
         $result{data}{$varVal[0]}=$varVal[1];
     }
     

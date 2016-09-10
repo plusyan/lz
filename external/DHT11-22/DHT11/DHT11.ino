@@ -71,8 +71,10 @@ void loop()
     Serial.print("chipid-text=iteaduino_nano");
     Serial.print(" nextseq=onchange");
     
-    Serial.print(" pin-d=");
+    Serial.print(" pin-n=");
     Serial.print(idDHT11pin);
+
+    Serial.print(" pin-type=d");
   
     Serial.print(" hum-%=");
     Serial.print(DHT11.getHumidity(), 2);
