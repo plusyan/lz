@@ -123,5 +123,5 @@ foreach my $ard (sort keys %cfg){
         exit 1;
     }
 
-    sleep 100 while (1);
 }
+sleep 100 while 1;
