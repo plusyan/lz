@@ -101,13 +101,13 @@ foreach my $ard (sort keys %cfg){
                 $string=~s|[\n\r]{1,}||g;
                 $seq++;
                 if ($string){
-                    $string="v-f=0.1 id-s=$cfg{$ard}{id} seq-n=$seq newseq-rxn=0|" . $string; # have the version predefined
+                    $string="v-f=0.1/id-s=$cfg{$ard}{id}/seq-n=$seq/newseq-rxn=0|" . $string; # have the version predefined
                 }else{
                     say "Empty string received from the sensor !";
-                    $string="v-f=0.1 id-s=$cfg{$ard}{id} seq-n=$seq newseq-rxn=0 err-text=noDataFromARDviaUSBport|";
+                    $string="v-f=0.1/id-s=$cfg{$ard}{id}/seq-n=$seq/newseq-rxn=0/err-text=noDataFromARDviaUSBport|";
                 }
                 
-                $string="crc32-n=" . crc32($string)  ." $string";
+                $string="crc32-n=" . crc32($string)  ."/$string";
                 say $pipe $string;
                 $string="";
             }
