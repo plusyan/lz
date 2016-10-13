@@ -65,13 +65,17 @@ foreach (sort keys %cfg){
     if ( -e $fifo ) { 
         unlink ($fifo) or die "Cannot delete FIFO file: $fifo . The error was: $!";
     }
-        
     system('mknod', $fifo, 'p') && die "can't mknod $fifo: $!";
     say "OK";
 }
 
 $SIG{INT}=\&terminate;
 $SIG{TERM}=\&terminate;
+
+#
+# TODO: Make sure that we empty the buffer of the /dev/ttyUSBX before we proceed. 
+# I.e. check if se have multiple measurements in the buffer. If so, discard the data !
+#
 
 foreach my $ard (sort keys %cfg){
     my $pid=fork();
@@ -89,7 +93,6 @@ foreach my $ard (sort keys %cfg){
             say "Failed to open FIFO: $cfg{$ard}{pipeFile} $!";
             exit 1;
         }
-        
         while (1){
             $|=1;
             # Create the header part
@@ -97,7 +100,6 @@ foreach my $ard (sort keys %cfg){
             $string .=$buffer;
             # Check if the string is completed by the EOL symbols, be it 0d, 0a, or both ! If so, send it via the pipe.
             if ($string=~m/[\n\r]/){
-                
                 $string=~s|[\n\r]{1,}||g;
                 $seq++;
                 if ($string){
@@ -106,14 +108,14 @@ foreach my $ard (sort keys %cfg){
                     say "Empty string received from the sensor !";
                     $string="v-f=0.1 id-s=$cfg{$ard}{id} seq-n=$seq newseq-rxn=0 err-text=noDataFromARDviaUSBport|";
                 }
-                
+
                 $string="crc32-n=" . crc32($string)  ." $string";
                 say $pipe $string;
                 $string="";
             }
         }
         #TODO: Try multiple times before give up !
-        
+
         close ($pipe) or die "Cannot write to pipe. $!";
 
     }elsif ($pid > 0){
