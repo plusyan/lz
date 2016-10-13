@@ -108,13 +108,7 @@ foreach my $ard (sort keys %cfg){
                     say "Empty string received from the sensor !";
                     $string="v-f=0.1/id-s=$cfg{$ard}{id}/seq-n=$seq/newseq-rxn=0/err-text=noDataFromARDviaUSBport|";
                 }
-<<<<<<< HEAD
-
-                $string="crc32-n=" . crc32($string)  ." $string";
-=======
-                
                 $string="crc32-n=" . crc32($string)  ."/$string";
->>>>>>> 9a57abc2c4be60afdb2ccc59552883af611cdf2b
                 say $pipe $string;
                 $string="";
             }
