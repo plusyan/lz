@@ -14,60 +14,30 @@ sub new {
 
 sub validateCRC32 {
     my ($self,$string)=@_;
-    my $crc32=$1 if ($string=~m/crc32-n=(\d*) /);
+    my $crc32=$1 if ($string=~m/crc32-n=(\d*)\//);
     unless ($crc32){
         $self->setLastError("Cannot find crc32-n= in $string !");
         return undef;
     }
-    $string=~s/crc32-n=$crc32 //;
+    $string=~s/crc32-n=$crc32\///;
     my $newcrc32=crc32($string);
     return 'validated' if ( $newcrc32 ==  $crc32);
-    $self->setLastError("String: [$string] contains invalid CRC32!  Have:$crc32,must be:$newcrc32");
+    $self->setLastError("WARNING: The sensor data was tampered with durring the transmission!!!\nString: [$string] contains invalid CRC32!  Have:$crc32,must be:$newcrc32.");
     return undef;
 }
 
-sub decode{
+sub parseVarVal{ 
     my ($self,$string)=@_;
     my %result=();
-    if ($string eq ''){
-        $self->setLastError("Empty string sent ! Need decrypted string sent by the sensor !");
+    my @rawData=split('/',$string);
+    #
+    # Split var1=val1/var2=var2 sequence into array.
+    #
+    if ($#rawData == -1){
+        $self->setLastError("String: $string does not contain valid data separated by '/' !");
         return undef;
     }
-    
-    return undef unless $self->validateCRC32($string);
-    
-    my @parts=split('\|',$string);
-    if ($#parts !=  1){
-        $self->setLastError("String: [$string] contains more then one '|' character. Cannot separate header from data !");
-        return undef;
-    }
-    my $rawData=pop @parts;
-    my $header=pop @parts;
-    
-    # Check if there is sensor failure first !
-    if ($header=~m/err-text=(.*) {0,}/){
-        $self->setLastError("sensorError=$1");
-        return undef;
-    }
-
-    # Parse the header here !
-    my @header=split(' ',$header);
-    if ($#header == -1){
-        $self->setLastError("String: $string does not contain valid header part ! Header and data are separeted by single '|' sign !");
-        return undef;
-    }
-    $result{header}={};
-    
-    my @data=split(' ',$rawData);
-    if ($#data == -1){
-        $self->setLastError("String: $string does not contain valid data part !  Header and data are separeted by single '|' sign !");
-        return undef;
-    }
-    $result{data}={};
-    
-    foreach (@header){
-        # Ignore the CRC32 because we allready checked it, and will remove it form our working solution.
-        next if m/crc\d{2}-n=/;
+    foreach (@rawData){
         my @varVal=split('=',$_);
         if ($#varVal == -1){
             $self->setLastError("Empty variable=value combination detected !");
@@ -78,33 +48,84 @@ sub decode{
             return undef;
         }
         
-        if (defined $result{header}{$varVal[0]}){
-            $self->setLastError("In header: $varVal[0] allready exists and have value:[$result{header}{$varVal[0]}]");
+        if (defined $result{$varVal[0]}){
+            $self->setLastError("Variable $varVal[0] allready exists and have value:[$result{envelop}{$varVal[0]}]");
             return undef;
         }
-        $result{header}{$varVal[0]}=$varVal[1];
+        
+        $result{$varVal[0]}=$varVal[1]; # Empty value is fine.
+    }
+    return \%result
+    
+    
+}
+
+sub decode{
+    my ($self,$string)=@_;
+    my %result=();
+    if ($string eq ''){
+        $self->setLastError("Empty string sent ! Need decrypted string sent by the sensor block!");
+        return undef;
     }
     
-    foreach (@data){
-        # Ignore the CRC32 because we allready checked it, and will remove it form our working solution.
-        next if m/crc\d{2}-n=/;
-        my @varVal=split('=',$_);
-        if ($#varVal == -1){
-            $self->setLastError("Empty variable=value combination detected in data part!");
-            return undef;
-        }
-        if ($#varVal != 1){
-            $self->setLastError("Data contains too many '=' signs ($#varVal) in string:" . join('=',@varVal));
-            return undef;
-        }
-        if (defined $result{data}{$varVal[0]}){
-            $self->setLastError("In data: $varVal[0] allready exists and have value:[$result{data}{$varVal[0]}]");
-            return undef;
-        }
-        $result{data}{$varVal[0]}=$varVal[1];
+    return undef unless $self->validateCRC32($string);
+    
+    my @parts=split('\|',$string);
+    #
+    # We need 3 parts: the sender envelop, the device description and the actual device data.
+    #
+    
+    my $data=pop @parts;
+    my $deviceDesc=pop @parts;
+    my $envelop=pop @parts;
+    my $r=undef;
+    
+    #
+    # Parse the envelop
+    #
+    
+    unless ($r=$self->parseVarVal($envelop)){
+        $self->setLastError("Failed to parse envelop. The error was: " . $self->getLastError);
+        return undef;
     }
     
+    $result{envelop}=$r;
+    if ($result{envelop}{'err-text'}){
+        $self->setLastError("sensorEnvelopError=$result{envelop}{'err-text'}");
+        return undef;
+    }
+    
+    #
+    # Parse the device description
+    #
+
+    unless ($r=$self->parseVarVal($deviceDesc)){
+        $self->setLastError("Failed to parse deviceDesc. The error was: " . $self->getLastError);
+        return undef;
+    }
+    $result{deviceDesc}=$r;
+    if ($result{deviceDesc}{'err-text'}){
+        $self->setLastError("sensorDeviceDesc=$result{deviceDesc}{'err-text'}");
+        return undef;
+    }
+    
+    #
+    # Parse the sensor data
+    #
+    
+    
+    unless ($r=$self->parseVarVal($data)){
+        $self->setLastError("Failed to parse sensor data. The error was: " . $self->getLastError);
+        return undef;
+    }
+    $result{data}=$r;
+    if ($result{data}{'err-text'}){
+        $self->setLastError("sensorData=$result{data}{'err-text'}");
+        return undef;
+    }
+
     return \%result;
+
 }
 
 1;

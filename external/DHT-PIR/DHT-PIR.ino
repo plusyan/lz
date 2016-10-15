@@ -64,20 +64,16 @@ void loop()
   htChg=0;
   // If there is change, print the header, and then add whatever we need.
   if (hTemp != humidity || tTemp != temperature){
+
     Serial.print(initString);  
-    Serial.print("|nseq=ochg");
+    Serial.print("|nseq=onchg");
     Serial.print("/pin-type=d");  
     Serial.print("/pin-n=");
     Serial.print(DHTpin);
-  }
-  
-  if (hTemp != humidity){
+
     Serial.print("/hum-%=");
     Serial.print(humidity, 2);
     htChg++;
-  }
-
-  if (tTemp != temperature){
     Serial.print("/temp-C=");
     Serial.print(temperature, 2);
 
@@ -89,6 +85,8 @@ void loop()
     Serial.println("\n");
     htChg=0;
   }
-
+  hTemp=humidity;
+  tTemp=temperature;
+  
 }
 
