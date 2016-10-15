@@ -96,13 +96,14 @@ foreach my $ard (sort keys %cfg){
 	my $randomID=int(rand(10000)) . int(rand(10000)) . int(rand(10000));
         while (1){
             $|=1;
-            # Create the header part
             my ($count,$buffer)=$serial->read($cfg{$ard}{buffer});
+	    next unless $buffer;
             $string .=$buffer;
             # Check if the string is completed by the EOL symbols, be it 0d, 0a, or both ! If so, send it via the pipe.
             if ($string=~m/[\n\r]/){
                 $string=~s|[\n\r]{1,}||g;
                 $seq++;
+		#Create the header part !
                 if ($string){
                     $string="v-f=0.1/id-s=$cfg{$ard}{id}/rndid-n=$randomID/seq-n=$seq/newseq-rxn=0|" . $string; # have the version predefined
                 }else{
