@@ -123,9 +123,7 @@ say "Before the fork ...";
             exit 1;
         }
         say "Done";
-        my $randomID=int(rand(10000)) . int(rand(10000)) . int(rand(10000));
-                
-                
+        my $randomID=int(rand(10000)) . int(rand(10000)) . int(rand(10000));   
         my $s=IO::Select->new();
         $s->add($rw);
         while (1){
@@ -141,33 +139,29 @@ say "Before the fork ...";
             }else{
                 next;
             }
-            
             unless ($string){
                 #say "String is empty !!! Repeating !!!";
                 next;
             }
             
-            # Check if the string is completed by the EOL symbols, be it 0d, 0a, or both ! If so, send it via the pipe.
+            #
+            # Sometimes it is possible to receive empty string. If so, ignore it and move on.
+            #TODO: Count the number of empty strings. If they reach certain ammount, ring the bell ...
+            #
+            
             if ($string=~m/[\n\r]/){
+                # Check if the string is completed by the EOL symbols, be it 0d, 0a, or both ! If so, send it via the pipe.
                 $string=~s|[\n\r]{1,}||g;
                 $seq++;
-		#Create the header part !
                 if ($string){
                     $string="v-f=0.1/id-s=$cfg{$ard}{id}/rndid-n=$randomID/seq-n=$seq/newseq-rxn=0|" . $string; # have the version predefined
-                }else{
-                    say "Empty string received from the sensor !";
-                    $string="v-f=0.1/id-s=$cfg{$ard}{id}/rndid-n=$randomID/seq-n=$seq/newseq-rxn=0/err-text=noDataFromARDviaUSBport|";
+                    $string="crc32-n=" . crc32($string)  ."/$string";
+                    print $pipe $string . "\n";
+                    $string="";
                 }
-                $string="crc32-n=" . crc32($string)  ."/$string";
-                print $pipe $string . "\n";
-                $string="";
             }
         }
-        
-        
-        
         #TODO: Try multiple times before give up !
-
         close ($pipe) or die "Cannot write to pipe. $!";
     }elsif ($pid > 0){
         push @pids,$pid;
@@ -175,6 +169,5 @@ say "Before the fork ...";
         say "Failed to fork child for port: $cfg{$ard}{port}\nReason:perl fork is not working !";
         exit 1;
     }
-
 }
 sleep 100 while 1;
