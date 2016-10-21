@@ -10,13 +10,14 @@ use warnings;
 use feature 'say';
 use Device::SerialPort qw( :PARAM :STAT 0.07 );
 use Data::Dumper;
-use Time::HiRes 'usleep';
 use Config::IniFiles;
 use File::Basename;
 use Config::Ard;
 use IO::File;
+use IO::Select;
 use String::CRC32;
- 
+use Time::HiRes qw(usleep nanosleep);
+$|=1;
 my @pids=();
 
 sub terminate {
@@ -54,8 +55,6 @@ die $c->getLastError unless $cfg;
 $c=undef;
 $cfg=undef;
 
-# TODO: Catch signals and terminate all forked processes !
-
 say "Creating all FIFO files required:";
 
 foreach (sort keys %cfg){
@@ -74,10 +73,11 @@ $SIG{TERM}=\&terminate;
 
 #
 # TODO: Make sure that we empty the buffer of the /dev/ttyUSBX before we proceed. 
-# I.e. check if se have multiple measurements in the buffer. If so, discard the data !
+# I.e. check if we have multiple measurements in the buffer. If so, discard the data !
 #
 
 foreach my $ard (sort keys %cfg){
+say "Before the fork ...";
     my $pid=fork();
     if ($pid == 0 ) {
         $|=1;
@@ -85,20 +85,68 @@ foreach my $ard (sort keys %cfg){
         my $serial = Device::SerialPort->new($cfg{$ard}{port}, 0) || die "Can't open $cfg{$ard}{port}: $!\n";
         $serial->baudrate($cfg{$ard}{baudRate}) || die "Cannot set speed to $cfg{$ard}{baudRate} !";
         my $seq=0;
-
-        my $string=""; #; # get this from the config file !
+        
+        my $serialConfigFile="$cfg{$ard}{pipeFile}" . "serial.config";
+        if ( -f $serialConfigFile ){
+            print  "Configuration file: $serialConfigFile exist. Deleting it ...";
+            unless (unlink($serialConfigFile)){
+                say "Failed: $!";
+                
+            }else{
+                say "Done.";
+            }
+        }
+        print "Saving configuration file: $serialConfigFile...";
+        $serial->save($serialConfigFile) or
+            die "Failed $!";
+        say "Done";
+            
+        #
+        # We only used the object $serial in order to create the configuration file.
+        #
+        
+        $serial=undef;
+        my $rw=IO::File->new();
+        $rw->autoflush;
+        $serial=tie (*$rw, 'Device::SerialPort', "$cfg{$ard}{port}");
+        unless ($serial){
+            #TODO: implement alert system to inform about the problem !!!
+            die "Failed to open serial port:$cfg{$ard}{port} $!";
+        }
+        
+        my $string="";
         my $pipe=IO::File->new();
         $pipe->autoflush;
+        print  "Opening fifo: $cfg{$ard}{pipeFile} ...";
         unless (open ($pipe,">","$cfg{$ard}{pipeFile}")){
-            say "Failed to open FIFO: $cfg{$ard}{pipeFile} $!";
+            say "Failed: $!";
             exit 1;
         }
-	my $randomID=int(rand(10000)) . int(rand(10000)) . int(rand(10000));
+        say "Done";
+        my $randomID=int(rand(10000)) . int(rand(10000)) . int(rand(10000));
+                
+                
+        my $s=IO::Select->new();
+        $s->add($rw);
         while (1){
-            $|=1;
-            my ($count,$buffer)=$serial->read($cfg{$ard}{buffer});
-	    next unless $buffer;
-            $string .=$buffer;
+            $string=undef;
+            if ($s->can_read()){
+                my $char=undef;
+                while (1){
+                    if (read($rw,$char,1)){
+                        $string .=$char;    
+                    }
+                    last if $char eq "\n";
+                }
+            }else{
+                next;
+            }
+            
+            unless ($string){
+                #say "String is empty !!! Repeating !!!";
+                next;
+            }
+            
             # Check if the string is completed by the EOL symbols, be it 0d, 0a, or both ! If so, send it via the pipe.
             if ($string=~m/[\n\r]/){
                 $string=~s|[\n\r]{1,}||g;
@@ -111,14 +159,16 @@ foreach my $ard (sort keys %cfg){
                     $string="v-f=0.1/id-s=$cfg{$ard}{id}/rndid-n=$randomID/seq-n=$seq/newseq-rxn=0/err-text=noDataFromARDviaUSBport|";
                 }
                 $string="crc32-n=" . crc32($string)  ."/$string";
-                say $pipe $string;
+                print $pipe $string . "\n";
                 $string="";
             }
         }
+        
+        
+        
         #TODO: Try multiple times before give up !
 
         close ($pipe) or die "Cannot write to pipe. $!";
-
     }elsif ($pid > 0){
         push @pids,$pid;
     }else{
